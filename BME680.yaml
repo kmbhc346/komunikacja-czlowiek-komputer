@@ -1,0 +1,85 @@
+esphome:
+  name: esp8266-bme680
+  friendly_name: ESP8266-BME680
+
+esp8266:
+  board: esp01_1m
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "yS2DD8csSqm1asMqbhEcrw1bLNkGQWBQGwy3ex47RuY="
+
+ota:
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "esp8266-bme680"
+    password: ""
+
+captive_portal:
+    
+
+i2c:
+  sda: 4
+  scl: 5
+
+bme680_bsec:
+  address: 0x77
+sensor:
+  - platform: bme680_bsec
+    temperature:
+      name: "Temperatura"
+    pressure:
+      name: "Cisnienie"
+    humidity:
+      name: "Wilgotnosc"
+    iaq:
+      name: "Jakosc powietrza wartosc"
+      id: iaq
+    co2_equivalent:
+      name: "Ekwiwalent CO2"
+    breath_voc_equivalent:
+      name: "Lotne zwiazki organiczne"
+
+text_sensor:
+  - platform: bme680_bsec
+    iaq_accuracy:
+      name: "Dokladnosc IAQ"
+
+  - platform: template
+    name: "Jakosc powietrza"
+    icon: "mdi:checkbox-marked-circle-outline"
+    lambda: |-
+      if ( int(id(iaq).state) <= 50) {
+        return {"Doskonale"};
+      }
+      else if (int(id(iaq).state) >= 51 && int(id(iaq).state) <= 100) {
+        return {"Dobre"};
+      }
+      else if (int(id(iaq).state) >= 101 && int(id(iaq).state) <= 150) {
+        return {"Nieswieze"};
+      }
+      else if (int(id(iaq).state) >= 151 && int(id(iaq).state) <= 200) {
+        return {"Lekko zanieczyszczone"};
+      }
+      else if (int(id(iaq).state) >= 201 && int(id(iaq).state) <= 250) {
+        return {"Zanieczyszczone"};
+      }
+      else if (int(id(iaq).state) >= 251 && int(id(iaq).state) <= 350) {
+        return {"Silnie zanieczyszczone"};
+      }
+      else if (int(id(iaq).state) >= 351) {
+        return {"Lepiej nie oddychac"};
+      }
+      else {
+        return {"Blad"};
+      }
